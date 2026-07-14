@@ -1,0 +1,45 @@
+name: Deploy Bootstrap
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - bootstrap.yaml
+  workflow_dispatch:
+
+jobs:
+  deploy-bootstrap:
+    name: Deploy bootstrap stack
+    runs-on: ubuntu-latest
+    permissions:
+      id-token: write
+      contents: read
+
+    steps:
+      - name: Checkout source
+        uses: actions/checkout@v4
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.BOOTSTRAP_ROLE_ARN }}
+          aws-region: ${{ secrets.AWS_REGION }}
+
+      - name: Deploy bootstrap stack
+        run: |
+          aws cloudformation deploy \
+            --template-file bootstrap.yaml \
+            --stack-name dynamo-sam-bootstrap \
+            --capabilities CAPABILITY_NAMED_IAM \
+            --parameter-overrides \
+              GitHubOrg=${{ secrets.ORG_NAME }} \
+              GitHubRepo=${{ secrets.REPO_NAME }} \
+            --no-fail-on-empty-changeset
+
+      - name: Print stack outputs
+        run: |
+          aws cloudformation describe-stacks \
+            --stack-name dynamo-sam-bootstrap \
+            --query 'Stacks[0].Outputs[*].{Key:OutputKey,Value:OutputValue}' \
+            --output table
