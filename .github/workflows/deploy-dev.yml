@@ -23,6 +23,12 @@ jobs:
         with:
           use-installer: true
 
+      - name: Debug OIDC sub claim
+        run: |
+          curl -sS -H "Authorization: bearer $ACTIONS_ID_TOKEN_REQUEST_TOKEN" \
+            "$ACTIONS_ID_TOKEN_REQUEST_URL&audience=sts.amazonaws.com" \
+            | jq -R 'split(".")[1] | @base64d | fromjson | .sub'
+
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v4
         with:
