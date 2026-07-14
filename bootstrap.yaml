@@ -94,6 +94,11 @@ Resources:
             Action:
               - cloudformation:ValidateTemplate
             Resource: '*'
+          - Sid: CloudFormationTransform
+            Effect: Allow
+            Action:
+              - cloudformation:CreateChangeSet
+            Resource: !Sub 'arn:aws:cloudformation:*:aws:transform/Serverless-2016-10-31'
           - Sid: DynamoDBTableOps
             Effect: Allow
             Action:
